@@ -1,3 +1,4 @@
+// client/src/App.jsx
 import { useState } from 'react';
 
 function App() {
@@ -6,6 +7,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+
+  // 환경변수 사용: 로컬 개발 시 VITE_API_URL=http://localhost:3000
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://web-project-eta-gray.vercel.app';
 
   const fetchData = async () => {
     if (!company.trim()) {
@@ -17,9 +21,7 @@ function App() {
     setSearched(true);
     try {
       const res = await fetch(
-        `https://web-project-eta-gray.vercel.app/api/data?company=${encodeURIComponent(
-          company
-        )}`
+        `${API_BASE}/api/data?company=${encodeURIComponent(company)}`
       );
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || json.message || res.statusText);
