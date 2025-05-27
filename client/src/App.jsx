@@ -40,7 +40,7 @@ function App() {
       {!searched && (
         <div className="text-center">
           <h1 className="text-5xl font-bold mb-6 text-brandSky">
-            내가 살려는 기업은?
+            내가 투자하려는 기업은?
           </h1>
           <div className="flex justify-center">
             <input
