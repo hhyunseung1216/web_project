@@ -1,10 +1,9 @@
-// api/data.js
 import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
-  // CORS 설정 (필요 없으면 제거)
+  // CORS 설정
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET");
 
@@ -14,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) 기업 설명 (2문장 이내)
+    // 1) 기업 소개 (2문장 이내)
     const descResp = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -26,34 +25,41 @@ export default async function handler(req, res) {
 
     // 2) NewsAPI 호출
     const newsRes = await fetch(
-      `https://newsapi.org/v2/everything?` +
-      `q=${encodeURIComponent(company)}` +
-      `&language=ko&pageSize=5&apiKey=${process.env.NEWSAPI_KEY}`
+      `https://newsapi.org/v2/everything?q=${encodeURIComponent(company)}&language=ko&pageSize=5&apiKey=${process.env.NEWSAPI_KEY}`
     );
     if (!newsRes.ok) throw new Error(`NewsAPI 에러: ${newsRes.status}`);
     const { articles } = await newsRes.json();
 
-    // 3) 뉴스 요약·번역 요청 (JSON 형태)
+    // 3) 뉴스 요약·번역 요청 (JSON 형태) + URL 포함
     const payload = articles
-      .map((a, i) => `${i+1}. 제목: ${a.title}\n내용: ${a.description || a.content || ""}`)
+      .map((a, i) => `${i + 1}. 제목: ${a.title}\n내용: ${a.description || a.content || ""}`)
       .join("\n\n");
+
     const sumResp = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content:
-            "다음 기사 목록을 받아, JSON 배열로 응답해 주세요. 각 아이템은 'title'과 'summary' 필드를 가지며, summary는 한국어 2문장 이내로 작성해 주세요."
+          content: "다음 기사 목록을 받아, JSON 배열로 응답해 주세요. 각 아이템은 'title', 'summary', 'url' 필드를 가지며, summary는 한국어 2문장 이내로 작성해 주세요."
         },
         { role: "user", content: payload }
       ]
     });
-    const summaries = JSON.parse(sumResp.choices[0].message.content);
+    const summariesOpenAI = JSON.parse(sumResp.choices[0].message.content);
 
-    // 최종 응답
+    // 4) articles 에서 URL 결합: OpenAI 결과에 URL 매핑
+    const summaries = summariesOpenAI.map((item, idx) => ({
+      title: item.title,
+      summary: item.summary,
+      url: articles[idx]?.url || ""
+    }));
+
     return res.status(200).json({ description, summaries });
   } catch (err) {
     console.error(err);
+    if (err.status === 429) {
+      return res.status(429).json({ error: "OpenAI 쿼터를 초과했습니다. 요금제 또는 결제 정보를 확인해주세요." });
+    }
     return res.status(500).json({ error: err.message || `${err}` });
   }
 }
