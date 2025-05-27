@@ -40,7 +40,8 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: "다음 기사 목록을 받아, JSON 배열로 응답해 주세요. 각 아이템은 'title', 'summary', 'url' 필드를 가지며, summary는 한국어 2문장 이내로 작성해 주세요."
+          content:
+            "응답은 **JSON 배열** 형태로만 보내주세요. **절대** ``` 같은 마크다운 구분자는 포함하지 말고, 순수 JSON 텍스트만 출력해 주세요."
         },
         { role: "user", content: payload }
       ]
