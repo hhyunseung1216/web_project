@@ -1,0 +1,23 @@
+{
+  "name": "web_project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hhyunseung1216/web_project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hhyunseung1216/web_project/issues"
+  },
+  "homepage": "https://github.com/hhyunseung1216/web_project#readme",
+  "description": "",
+  "dependencies": {
+    "openai": "^4.103.0"
+  }
+}
